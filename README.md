@@ -4,8 +4,18 @@ BARTpy
 Python bindings for the BART API
 
 
-Examples
+Usage
 ==========
 ```
 ./cli-bart.py --station 19th
+```
+
+Example Script
+==============
+```
+from BART import BART
+
+bart = BART()
+for train in bart["24th"]:
+    print "%d car train in %s" % (len(train), train.minutes)
 ```

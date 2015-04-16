@@ -84,6 +84,10 @@ class Departure(XMLParser):
     def _parse_trains(self, trains):
         self.trains = [Train(est) for est in trains]
 
+    def __iter__(self):
+        for train in self.trains:
+            yield train
+
 
 class Station(XMLParser):
 
@@ -95,6 +99,11 @@ class Station(XMLParser):
 
     def _parse_departures(self, departures):
         self.departures = [Departure(depart) for depart in departures]
+
+    def __iter__(self):
+        for departure in self.departures:
+            for train in departure:
+                yield train
 
 
 class BART(object):

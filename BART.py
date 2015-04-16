@@ -78,11 +78,11 @@ class Departure(XMLParser):
     def __init__(self, et):
         self.destination = self.get_first_child(et, 'destination').text
         self.abbreviation = self.get_first_child(et, 'abbreviation').text
-        estimates = self.get_all_children(et, 'estimate')
-        self._parse_estimates(estimates)
+        trains = self.get_all_children(et, 'estimate')
+        self._parse_trains(trains)
 
-    def _parse_estimates(self, estimates):
-        self.estimates = [Train(est) for est in estimates]
+    def _parse_trains(self, trains):
+        self.trains = [Train(est) for est in trains]
 
 
 class Station(XMLParser):

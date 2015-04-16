@@ -11,7 +11,7 @@ import xml.etree.cElementTree as ET
 from datetime import timedelta
 
 
-class XMLPraser(object):
+class XMLParser(object):
 
     ''' Base object with helper functions to deail with XML '''
 
@@ -24,7 +24,7 @@ class XMLPraser(object):
         return filter(lambda child: child.tag == tag, et.getchildren())
 
 
-class Train(XMLPraser):
+class Train(XMLParser):
 
     def __init__(self, et):
         self.minutes = self.get_first_child(et, 'minutes').text
@@ -73,7 +73,7 @@ class Train(XMLPraser):
         return self._length
 
 
-class Departure(XMLPraser):
+class Departure(XMLParser):
 
     def __init__(self, et):
         self.destination = self.get_first_child(et, 'destination').text
@@ -85,7 +85,7 @@ class Departure(XMLPraser):
         self.estimates = [Train(est) for est in estimates]
 
 
-class Station(XMLPraser):
+class Station(XMLParser):
 
     def __init__(self, et):
         self.name = self.get_first_child(et, 'name').text

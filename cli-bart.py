@@ -14,7 +14,7 @@ def _main(args):
     for departure in station.departures:
         print "Departures -> %s" % departure.destination
         print "==============" + ("=" * len(departure.destination))
-        for index, train in enumerate(departure.estimates):
+        for index, train in enumerate(departure.trains):
             print "%d) %d car train in %s" % (
                 index + 1, len(train), train.minutes
             )

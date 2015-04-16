@@ -41,6 +41,8 @@ class Train(XMLPraser):
 
     @minutes.setter
     def minutes(self, value):
+        if value.lower() == 'leaving':
+            value = 0
         self._minutes = timedelta(minutes=int(value))
 
     @property

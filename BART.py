@@ -79,9 +79,6 @@ class Departure(XMLParser):
         self.destination = self.get_first_child(et, 'destination').text
         self.abbreviation = self.get_first_child(et, 'abbreviation').text
         trains = self.get_all_children(et, 'estimate')
-        self._parse_trains(trains)
-
-    def _parse_trains(self, trains):
         self.trains = [Train(est) for est in trains]
 
     def __iter__(self):
@@ -95,10 +92,20 @@ class Station(XMLParser):
         self.name = self.get_first_child(et, 'name').text
         self.abbreviation = self.get_first_child(et, 'abbr').text
         departures = self.get_all_children(et, 'etd')
-        self._parse_departures(departures)
-
-    def _parse_departures(self, departures):
         self.departures = [Departure(depart) for depart in departures]
+
+    @property
+    def north(self):
+        return filter(lambda train: train.direction.lower() == "north", self)
+
+    @property
+    def south(self):
+        return filter(lambda train: train.direction.lower() == "south", self)
+
+    def __getitem__(self, key):
+        key = key.lower()
+        return filter(
+            lambda depart: depart.destination.lower() == key, self.departures)
 
     def __iter__(self):
         for departure in self.departures:
@@ -117,15 +124,15 @@ class BART(object):
     STATION_NAMES = {
         # Abbr   Station Name
         "12th": "12th St. Oakland City Center",
-        "16th": "16th St. Mission (SF)",
+        "16th": "16th St. Mission",
         "19th": "19th St. Oakland",
-        "24th": "24th St. Mission (SF)",
-        "ashb": "Ashby (Berkeley)",
-        "balb": "Balboa Park (SF)",
-        "bayf": "Bay Fair (San Leandro)",
+        "24th": "24th St. Mission",
+        "ashb": "Ashby",
+        "balb": "Balboa Park",
+        "bayf": "Bay Fair",
         "cast": "Castro Valley",
-        "civc": "Civic Center (SF)",
-        "cols": "Coliseum/Oakland Airport",
+        "civc": "Civic Center",
+        "cols": "Coliseum",
         "colm": "Colma",
         "conc": "Concord",
         "daly": "Daly City",
@@ -133,26 +140,26 @@ class BART(object):
         "dubl": "Dublin/Pleasanton",
         "deln": "El Cerrito del Norte",
         "plza": "El Cerrito Plaza",
-        "embr": "Embarcadero (SF)",
+        "embr": "Embarcadero",
         "frmt": "Fremont",
-        "ftvl": "Fruitvale (Oakland)",
-        "glen": "Glen Park (SF)",
+        "ftvl": "Fruitvale",
+        "glen": "Glen Park",
         "hayw": "Hayward",
         "lafy": "Lafayette",
-        "lake": "Lake Merritt (Oakland)",
-        "mcar": "MacArthur (Oakland)",
+        "lake": "Lake Merritt",
+        "mcar": "MacArthur",
         "mlbr": "Millbrae",
-        "mont": "Montgomery St. (SF)",
+        "mont": "Montgomery St.",
         "nbrk": "North Berkeley",
         "ncon": "North Concord/Martinez",
         "orin": "Orinda",
         "pitt": "Pittsburg/Bay Point",
         "phil": "Pleasant Hill",
-        "powl": "Powell St. (SF)",
+        "powl": "Powell St.",
         "rich": "Richmond",
-        "rock": "Rockridge (Oakland)",
+        "rock": "Rockridge",
         "sbrn": "San Bruno",
-        "sfia": "San Francisco Int'l Airport",
+        "sfia": "SFO",
         "sanl": "San Leandro",
         "shay": "South Hayward",
         "ssan": "South San Francisco",
@@ -164,13 +171,6 @@ class BART(object):
 
     def __init__(self, api_key='MW9S-E7SL-26DU-VV8V'):
         self.api_key = api_key
-
-    def __getitem__(self, key):
-        ''' We handle both the abbreviation and full name '''
-        for abbr, name in self.STATION_NAMES.iteritems():
-            if key == abbr or key == name:
-                return self._get_station(abbr)
-        raise KeyError("Not a valid station name")
 
     def api_request(self, **parameters):
         '''
@@ -187,3 +187,14 @@ class BART(object):
         kids = resp.getchildren()
         stations = filter(lambda child: child.tag == 'station', kids)
         return Station(stations[0])
+
+    def __getitem__(self, key):
+        ''' We handle both the abbreviation and full name '''
+        for abbr, name in self.STATION_NAMES.iteritems():
+            if key == abbr or key == name:
+                return self._get_station(abbr)
+        raise KeyError("Not a valid station name")
+
+    def __iter__(self):
+        for station in self.STATION_NAMES:
+            yield self[station]

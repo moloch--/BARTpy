@@ -1,6 +1,7 @@
 '''
 
-API Objects
+BART objects, so we don't have to think about the XML
+we just play with Python objects and it's all abstracted away.
 
 '''
 
@@ -25,6 +26,8 @@ class XMLParser(object):
 
 
 class Train(XMLParser):
+
+    ''' A single train '''
 
     def __init__(self, et):
         self.minutes = self.get_first_child(et, 'minutes').text
@@ -75,6 +78,10 @@ class Train(XMLParser):
 
 class Departure(XMLParser):
 
+    '''
+    This is a basically the train lines/departures to a given destination
+    '''
+
     def __init__(self, et):
         self.destination = self.get_first_child(et, 'destination').text
         self.abbreviation = self.get_first_child(et, 'abbreviation').text
@@ -88,6 +95,8 @@ class Departure(XMLParser):
 
 class Station(XMLParser):
 
+    ''' The BART stations '''
+
     def __init__(self, et):
         self.name = self.get_first_child(et, 'name').text
         self.abbreviation = self.get_first_child(et, 'abbr').text
@@ -96,18 +105,27 @@ class Station(XMLParser):
 
     @property
     def north(self):
+        ''' All north bound trains '''
         return filter(lambda train: train.direction.lower() == "north", self)
 
     @property
     def south(self):
+        ''' All south bound trains '''
         return filter(lambda train: train.direction.lower() == "south", self)
 
     def __getitem__(self, key):
+        '''
+        We return the Departure for a given key (destination). When we filter
+        for the key we get a list, but it will only ever be empty or contain a
+        single object, so we return the Departure or None.
+        '''
         key = key.lower()
-        return filter(
+        departs = filter(
             lambda depart: depart.destination.lower() == key, self.departures)
+        return departs[0] if len(departs) else None
 
     def __iter__(self):
+        ''' Just iterate all the trains in the station '''
         for departure in self.departures:
             for train in departure:
                 yield train
@@ -175,7 +193,7 @@ class BART(object):
     def api_request(self, **parameters):
         '''
         Creates the HTTPRequest object and automatically adds the
-        API key and assocaited email
+        API key.
         '''
         parameters['key'] = self.api_key
         params = urllib.urlencode(parameters)
@@ -183,6 +201,10 @@ class BART(object):
         return ET.fromstring(response.read())
 
     def _get_station(self, name):
+        '''
+        Get the details for a single station from the API.
+        TODO: Raise exceptions if the API returns an error.
+        '''
         resp = self.api_request(cmd='etd', orig=name)
         kids = resp.getchildren()
         stations = filter(lambda child: child.tag == 'station', kids)

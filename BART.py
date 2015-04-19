@@ -7,12 +7,24 @@ we just play with Python objects and it's all abstracted away.
 
 import urllib
 import urllib2
+import platform as py_platform
 import xml.etree.cElementTree as ET
 
 from datetime import timedelta
 
 
-class XMLParser(object):
+TERM_COLORS = {
+    "default": "\033[0m",
+    "red": "\033[31m",
+    "yellow": "\033[33m",
+    "blue": "\033[36m",
+    # There's actually no ASCI escape for orange :(
+    # so I just magenta
+    "orange": "\033[35m",
+}
+
+
+class XMLHelper(object):
 
     ''' Base object with helper functions to deail with XML '''
 
@@ -25,11 +37,11 @@ class XMLParser(object):
         return filter(lambda child: child.tag == tag, et.getchildren())
 
 
-class Train(XMLParser):
+class Train(XMLHelper):
 
     ''' A single train '''
 
-    def __init__(self, et):
+    def __init__(self, et, departure):
         self.minutes = self.get_first_child(et, 'minutes').text
         self.platform = self.get_first_child(et, 'platform').text
         self.direction = self.get_first_child(et, 'direction').text
@@ -37,13 +49,16 @@ class Train(XMLParser):
         self.color = self.get_first_child(et, 'color').text
         self.hex_color = self.get_first_child(et, 'hexcolor').text
         self.bikes = self.get_first_child(et, 'bikeflag').text
+        self.departure = departure
 
     @property
     def minutes(self):
+        ''' Returns the minutes as a timedelta '''
         return self._minutes
 
     @minutes.setter
     def minutes(self, value):
+        ''' Convert annoying "leaving" string to int '''
         if value.lower() == 'leaving':
             value = 0
         self._minutes = timedelta(minutes=int(value))
@@ -72,11 +87,26 @@ class Train(XMLParser):
     def length(self, value):
         self._length = int(value)
 
+    @property
+    def term_color(self):
+        '''
+        Return the terminal version of the color, no support for windows
+        terminal but for compatability we return an empty string.
+        '''
+        if py_platform.system().lower() in ['linux', 'darwin']:
+            return TERM_COLORS.get(self.color.lower(), "")
+        else:
+            return ""
+
+    def __str__(self):
+        return "%d car %s bound train heading to %s" % (
+            len(self), self.direction, self.departure.destination)
+
     def __len__(self):
         return self._length
 
 
-class Departure(XMLParser):
+class Departure(XMLHelper):
 
     '''
     This is a basically the train lines/departures to a given destination
@@ -86,14 +116,14 @@ class Departure(XMLParser):
         self.destination = self.get_first_child(et, 'destination').text
         self.abbreviation = self.get_first_child(et, 'abbreviation').text
         trains = self.get_all_children(et, 'estimate')
-        self.trains = [Train(est) for est in trains]
+        self.trains = [Train(est, self) for est in trains]
 
     def __iter__(self):
         for train in self.trains:
             yield train
 
 
-class Station(XMLParser):
+class Station(XMLHelper):
 
     ''' The BART stations '''
 
@@ -155,7 +185,7 @@ class BART(object):
         "conc": "Concord",
         "daly": "Daly City",
         "dbrk": "Downtown Berkeley",
-        "dubl": "Dublin/Pleasanton",
+        "dubl": ["Dublin", "Pleasanton"],
         "deln": "El Cerrito del Norte",
         "plza": "El Cerrito Plaza",
         "embr": "Embarcadero",
@@ -169,15 +199,15 @@ class BART(object):
         "mlbr": "Millbrae",
         "mont": "Montgomery St.",
         "nbrk": "North Berkeley",
-        "ncon": "North Concord/Martinez",
+        "ncon": ["North Concord", "Martinez"],
         "orin": "Orinda",
-        "pitt": "Pittsburg/Bay Point",
+        "pitt": ["Pittsburg", "Bay Point"],
         "phil": "Pleasant Hill",
         "powl": "Powell St.",
         "rich": "Richmond",
         "rock": "Rockridge",
         "sbrn": "San Bruno",
-        "sfia": "SFO",
+        "sfia": ["SFO", "San Francisco International Airport"],
         "sanl": "San Leandro",
         "shay": "South Hayward",
         "ssan": "South San Francisco",
@@ -213,7 +243,7 @@ class BART(object):
     def __getitem__(self, key):
         ''' We handle both the abbreviation and full name '''
         for abbr, name in self.STATION_NAMES.iteritems():
-            if key == abbr or key == name:
+            if key.lower() == abbr or key in name:
                 return self._get_station(abbr)
         raise KeyError("Not a valid station name")
 

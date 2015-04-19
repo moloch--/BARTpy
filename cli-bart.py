@@ -4,27 +4,39 @@ A command line interface to the BART
 '''
 
 import argparse
+import platform
 
 from BART import BART
+
+BOLD = ""
+DEFAULT = ""
+
+# Pretty colors for the good operating systems
+if platform.system().lower() in ['linux', 'darwin']:
+    BOLD = "\033[1m"
+    DEFAULT = "\033[0m"
 
 
 def display_trains(station):
     bart = BART()
     for departure in bart[station].departures:
-        print "Departures -> %s" % departure.destination
-        print "==============" + ("=" * len(departure.destination))
+        print("%sDepartures -> %s%s" % (
+            BOLD, departure.destination, DEFAULT,
+        ))
+        print("==============" + ("=" * len(departure.destination)))
         for index, train in enumerate(departure.trains):
-            print "%d) %d car train in %s" % (
-                index + 1, len(train), train.minutes
-            )
-        print ""
+            print("%s%d) %d car train in %s%s" % (
+                BOLD + train.term_color, index + 1, len(train),
+                train.minutes, DEFAULT,
+            ))
+        print("")
 
 
 def display_station_names():
-    print "Abbr - Station Name"
-    print "==================="
+    print("Abbr - Station Name")
+    print("===================")
     for abbr, name in BART.STATION_NAMES.iteritems():
-        print "%s - %s" % (abbr, name)
+        print("%s - %s" % (abbr, name))
 
 
 def _main(args):

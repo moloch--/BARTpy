@@ -16,8 +16,12 @@ from datetime import timedelta
 TERM_COLORS = {
     "default": "\033[0m",
     "red": "\033[31m",
-    "yellow": "\033[33m",
     "blue": "\033[36m",
+    "green": "\033[32m",
+
+    # The yellow kinda looks like orange
+    "yellow": "\033[33m",
+
     # There's actually no ASCI escape for orange :(
     # so I just magenta
     "orange": "\033[35m",

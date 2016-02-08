@@ -22,8 +22,8 @@ TERM_COLORS = {
     # The yellow kinda looks like orange
     "yellow": "\033[33m",
 
-    # There's actually no ASCI escape for orange :(
-    # so I just magenta
+    # There's actually no ASCII escape for orange :(
+    # so I just arbitrarily chose magenta
     "orange": "\033[35m",
 }
 

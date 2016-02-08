@@ -3,6 +3,7 @@
 A command line interface to the BART
 '''
 
+import sys
 import argparse
 import platform
 
@@ -17,19 +18,25 @@ if platform.system().lower() in ['linux', 'darwin']:
     DEFAULT = "\033[0m"
 
 
-def display_trains(station):
+def display_trains(station, no_color=False):
     bart = BART()
     for departure in bart[station].departures:
-        print("%sDepartures -> %s%s" % (
-            BOLD, departure.destination, DEFAULT,
-        ))
-        print("==============" + ("=" * len(departure.destination)))
+        if not no_color:
+            sys.stdout.write(BOLD)
+        sys.stdout.write("Departures -> %s" % (departure.destination))
+        if not no_color:
+            sys.stdout.write(DEFAULT)
+        print("\n==============" + ("=" * len(departure.destination)))
         for index, train in enumerate(departure.trains):
-            print("%s%d) %d car train in %s%s" % (
-                BOLD + train.term_color, index + 1, len(train),
-                train.minutes, DEFAULT,
+            if not no_color:
+                sys.stdout.write(BOLD + train.term_color)
+            sys.stdout.write("%d) %d car train in %s" % (
+                index + 1, len(train), train.minutes,
             ))
-        print("")
+            if not no_color:
+                sys.stdout.write(DEFAULT)
+            sys.stdout.write("\n")
+        sys.stdout.write("\n")
 
 
 def display_station_names():
@@ -43,7 +50,7 @@ def _main(args):
     if args.ls:
         display_station_names()
     if args.station is not None:
-        display_trains(args.station)
+        display_trains(args.station, args.no_color)
 
 
 if __name__ == '__main__':
@@ -57,4 +64,8 @@ if __name__ == '__main__':
                         help='list all station names',
                         action='store_true',
                         dest='ls')
+    parser.add_argument('--no-color', '-c',
+                        help='disable terminal colors',
+                        action='store_true',
+                        dest='no_color')
     _main(parser.parse_args())

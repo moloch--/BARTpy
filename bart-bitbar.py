@@ -15,6 +15,7 @@ from BART import BART
 bart = BART()
 
 print "%s | dropdown=false" % TITLE
+print "---"
 print "%s" % BART.STATION_NAMES[STATION]
 
 for departure in bart[STATION].departures:

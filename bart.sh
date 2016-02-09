@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# for use with Bitbar https://github.com/matryer/bitbar
+
 export PATH="/usr/local/bin:/usr/bin:$PATH"
 echo "🚈| dropdown=false"
 echo "---"
 
-python /Users/moloch/git/BARTpy/cli-bart.py --station 24th --no-color
+python ~/.bitbar/bart/cli-bart.py --station 24th --no-color

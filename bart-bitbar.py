@@ -7,13 +7,14 @@
 # <bitbar.desc>Get BART times.</bitbar.desc>
 # <bitbar.dependencies>python</bitbar.dependencies>
 
+TITLE="🚈"
 STATION="24th"
 
 # Code
 from BART import BART
 bart = BART()
 
-print "BART | dropdown=false"
+print "%s | dropdown=false" % TITLE
 print "%s" % BART.STATION_NAMES[STATION]
 
 for departure in bart[STATION].departures:

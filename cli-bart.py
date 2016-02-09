@@ -36,7 +36,7 @@ def display_trains(station, no_color=False):
             if not no_color:
                 sys.stdout.write(DEFAULT)
             sys.stdout.write("\n")
-        sys.stdout.write("---\n")
+        sys.stdout.write("\n")
 
 
 def display_station_names():
